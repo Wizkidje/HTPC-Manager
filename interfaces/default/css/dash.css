@@ -49,3 +49,48 @@
 .dashboard .span4 #nzbgetdownloads_table_body td:last-child {
     width: 14px;
 }
+
+.widget {
+	overflow: hidden;
+	overflow-x: hidden;
+	border: 2px solid #FFFFF;
+	border-radius: 10px;
+	padding-left: 5px;
+	margin-bottom: 5px;
+	width: 31%;
+	margin-right: 1%;
+	float: left;
+	background-color: rgba(255, 255, 255, 0.7);
+	scrollbar-base-color:#ff6347;
+}
+
+.widgetentry {
+	height: 75px;
+	font-size: 12px;
+	background-size: 100% 100%;
+	margin-bottom: 5px;
+	display: none;
+	color: white;
+}
+
+.widgetentryinfo {
+	background-color: rgba(0, 0, 0, 0.7);
+}
+
+.clear {
+	clear: both;
+}
+
+.addtosickbeard {
+	width: 25px;
+	height: 25px;
+	float: right;
+}
+
+.dashcontent {
+	background-color: transparent;
+}
+
+h3 {
+	text-align: center;
+}

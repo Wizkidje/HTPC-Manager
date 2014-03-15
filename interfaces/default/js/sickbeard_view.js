@@ -72,7 +72,7 @@ function renderSeasonTabs(showid, seasons){
 
 function showEpisodeInfo(nShowID, nSeason, nEpisode) {
 	$.getJSON(WEBDIR + "sickbeard/GetEpisode/" + nShowID + "/" + nSeason + "/" + nEpisode, function(pResult) {
-		var strHTML = $("<table>").attr("class", "episodeinfo")
+		var strHTML = $("<table>").attr("class", "modaltable")
 			.append($("<tr>")
 				.append($("<td>").html("<b>Name</b>"))
 				.append($("<td>").text(pResult.data.name)))

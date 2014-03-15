@@ -70,7 +70,9 @@ def load_modules():
     from modules.stats import Stats
     htpc.ROOT.stats = Stats()
     from modules.tvheadend import TVHeadend
-    htpc.ROOT.tvheadend = TVHeadend()	
+    htpc.ROOT.tvheadend = TVHeadend()
+    from modules.trakt import Trakt
+    htpc.ROOT.trakt = Trakt()	
 
 
 def main():

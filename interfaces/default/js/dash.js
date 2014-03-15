@@ -5,7 +5,8 @@ $(document).ready(function () {
     loadDownloadHistory()
     loadNZBGetDownloadHistory()
     loadWantedMovies()
-    loadNextAired()
+    loadNextAired();
+	loadTrakt();
 })
     
 function loadRecentMovies () {
@@ -146,28 +147,137 @@ function loadWantedMovies() {
         })
     })
 }
+
+/**
+	SickBeard next airing
+*/
+var g_nFadeInTimeout = 1000;					// The fadeint timeout
+var g_nDefaultWidgetEntryHeight = 75;			// The default episode info height (dash.css > .widgetentry)
+
+function showEpisodeInfo(pEpisode) {
+	$("#sb_epiinfo_" + pEpisode.tvdbid).html(pEpisode.show_name + " S" + pEpisode.season + "E" + pEpisode.episode + " - " + pEpisode.ep_name + " (Airs " + pEpisode.airdate + " on " + pEpisode.network + ")");
+}
+
 function loadNextAired(options) {
-    if (!$('#nextaired_table_body').length) return
-    $.getJSON(WEBDIR + 'sickbeard/GetNextAired', function (result) {
-        if (result == null || result.data.soon.legth == 0) {
-            $('#nextaired_table_body').append(
-                $('<tr>').append($('<td>').html('No future episodes found'))
-            )
-            return
+    $.getJSON(WEBDIR + "sickbeard/GetNextAired", function (pResult) {
+        if (pResult == null || pResult.data.soon.legth == 0) {
+            return;
         }
-        var soonaired = result.data.soon
-        var todayaired = result.data.today
-        var nextaired = todayaired.concat(soonaired)
-        $.each(nextaired, function (i, tvshow) {
-            if (i >= 5) return
-            var name = $('<a>').attr('href', 'sickbeard/view/' + tvshow.tvdbid).html(tvshow.show_name)
-            $('#nextaired_table_body').append(
-                $('<tr>').append(
-                    $('<td>').append(name),
-                    $('<td>').html(tvshow.ep_name),
-                    $('<td>').html(tvshow.airdate)
-                )
-            )
+		
+        $.each(pResult.data.today.concat(pResult.data.soon), function (nIndex, pEpisode) {
+            $("#sickbeard")
+				.append($("<div>").attr("class", "widgetentry")
+						.append($("<div>")
+							.attr("id", "sb_epiinfo_" + pEpisode.tvdbid)
+							.attr("class", "widgetentryinfo")
+							.attr("style", "padding: 5px"))
+						.attr("style", "background-image: url('sickbeard/GetBanner/" + pEpisode.tvdbid + "');")
+						.mouseover(function(pEvent) {
+							pEvent.preventDefault();
+							$("#sb_epiinfo_" + pEpisode.tvdbid).html(pEpisode.ep_plot);
+							
+							var nNewHeight = $("#sb_epiinfo_" + pEpisode.tvdbid).height();
+							
+							if (nNewHeight > $("#sb_epiinfo_" + pEpisode.tvdbid).parent().height()) {
+								$("#sb_epiinfo_" + pEpisode.tvdbid).parent().height($("#sb_epiinfo_" + pEpisode.tvdbid).height());
+							}
+						})
+						.mouseout(function(pEvent) {
+							pEvent.preventDefault();
+							showEpisodeInfo(pEpisode);
+							$("#sb_epiinfo_" + pEpisode.tvdbid).parent().height(g_nDefaultWidgetEntryHeight);
+						})
+						.click(function(pEvent) {
+							window.location = "sickbeard/view/" + pEpisode.tvdbid;
+						})
+						.fadeIn(g_nFadeInTimeout)
+					);
+					
+			showEpisodeInfo(pEpisode);
         })
     })
+}
+
+/**
+	Trakt
+*/
+function showShowInfo(pShow) {
+	var strHTML = $("<div>")
+		.append($("<img>").attr("src", pShow.images.banner))
+		.append($("<img>").attr("class", "addtosickbeard")
+			.attr("alt", "Add to SickBeard")
+			.attr("src", "img/sickbeard.png")
+			.click(function(pEvent) {
+				pEvent.preventDefault();
+				
+				$.getJSON(WEBDIR + "sickbeard/AddShow/" + pShow.tvdb_id);
+			}))
+		.append($("<table>").attr("class", "modaltable")
+			.append($("<tr>")
+				.append($("<td>").html("<b>Title</b>"))
+				.append($("<td>").text(pShow.title))
+			).append($("<tr>")
+				.append($("<td>").html("<b>Overview</b>"))
+				.append($("<td>").text(pShow.overview))
+			).append($("<tr>")
+				.append($("<td>").html("<b>Rating</b>"))
+				.append($("<td>").text(pShow.ratings.percentage + "% (" + pShow.ratings.loved + " out of " + pShow.ratings.votes + " votes)"))
+			).append($("<tr>")
+				.append($("<td>").html("<b>Status</b>"))
+				.append($("<td>").text(pShow.status))
+			).append($("<tr>")
+				.append($("<td>").html("<b>Network</b>"))
+				.append($("<td>").text(pShow.network))
+			).append($("<tr>")
+				.append($("<td>").html("<b>Year</b>"))
+				.append($("<td>").text(pShow.year))
+			).append($("<tr>")
+				.append($("<td>").html("<b>Runtime</b>"))
+				.append($("<td>").text(pShow.runtime + " minutes"))
+			).append($("<tr>")
+				.append($("<td>").html("<b>Country</b>"))
+				.append($("<td>").text(pShow.country))
+			).append($("<tr>")
+				.append($("<td>").html("<b>Watchers</b>"))
+				.append($("<td>").text(pShow.watchers))
+			)
+		);
+	
+	showModal(pShow.title, strHTML, []);
+}
+
+function addShowToWidget(pWidget, pItem) {
+	pWidget
+		.append($("<div>").attr("class", "widgetentry")
+				.append($("<div>")
+					.attr("id", "trakt_epiinfo_" + pItem.tvdb_id)
+					.attr("class", "widgetentryinfo"))
+				.attr("style", "background-image: url('" + pItem.images.banner + "');")
+				.click(function(pEvent) {
+					pEvent.preventDefault();
+					showShowInfo(pItem);
+				})
+				.fadeIn(g_nFadeInTimeout)
+			);
+}
+
+function loadTraktInfo(strRequest, pWidget) {
+	$.getJSON(WEBDIR + "trakt/" + strRequest, function (pResult) {
+        if (pResult == null) {
+            return;
+        }
+		
+		$.each(pResult, function(nIndex, pItem) {
+			addShowToWidget(pWidget, pItem);
+			
+			if (nIndex > 4) {
+				return false;
+			}
+		});
+	});
+}
+
+function loadTrakt() {
+	loadTraktInfo("GetTrending/shows", $("#trakt_trending_shows"));
+	loadTraktInfo("GetRecommendations/shows", $("#trakt_recommended_shows"));
 }

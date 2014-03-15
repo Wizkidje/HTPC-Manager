@@ -50,3 +50,15 @@ table th.tablesorter-header {
 .icon-black {
     color:black;
 }
+
+.modaltable {
+	width: 100%;
+}
+
+.modaltable td {
+	padding-left: 20px;
+}
+
+.modaltable tr {
+	border-bottom: 1px solid #CCCCCC;
+}
